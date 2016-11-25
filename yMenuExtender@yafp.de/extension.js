@@ -91,7 +91,8 @@ let qpaeqSubMenu = null;
 //
 function init(extensionMeta) {
     let theme = imports.gi.Gtk.IconTheme.get_default();
-    theme.append_search_path(extensionMeta.path + "/icons");
+    //theme.append_search_path(extensionMeta.path + "/icons");
+    theme.append_search_path(extensionMeta.path + "/");
 }
 
 
