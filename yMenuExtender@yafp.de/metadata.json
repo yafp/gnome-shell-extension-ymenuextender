@@ -1,8 +1,8 @@
 {
     "name": "yMenuExtender",
-    "description": "Adds a submenu with additional session functions (lock, logout, shutdown, reboot) to the User Menu and hides the activities menu", 
+    "description": "Adds a menu with additional session functions (lock, logout, hibernate, shutdown and reboot) and hides the activities menu", 
     "uuid": "yMenuExtender@yafp.de", 
     "url": "http://github.com/yafp/gnome-shell-extension-ymenuextender",
-    "shell-version": ["3.18.5"],
-    "version": 2
+    "shell-version": ["3.22.1"],
+    "version": 1
 }
