@@ -4,6 +4,11 @@
 * Adds a new menu featuring `lock`, `logout`, `hibernate`, `reboot` and `shutdown` to the panel
 * Hides the `activities` menu
 
+
+## Supported Gnome-Shell versions
+- 3.22.1
+
+
 ## Install
 ### Version 1: Manual
 * Copy `yMenuExtender@yafp.de` to `$HOME/.local/share/gnome-shell/extensions/`
