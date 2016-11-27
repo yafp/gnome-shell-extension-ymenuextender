@@ -41,6 +41,11 @@ const QpaeqSubMenu = new Lang.Class({
         this.item.connect('activate', Lang.bind(this, this._doReboot));
         this.menu.addMenuItem(this.item);
         
+        // Menu Item: Hibernate
+        this.item = new PopupMenu.PopupMenuItem('Hibernate');
+        this.item.connect('activate', Lang.bind(this, this._doHibernate));
+        this.menu.addMenuItem(this.item);
+        
         // Menu Item: Shutdown
         this.item = new PopupMenu.PopupMenuItem('Shutdown');
         this.item.connect('activate', Lang.bind(this, this._doShutdown));
@@ -65,6 +70,10 @@ const QpaeqSubMenu = new Lang.Class({
     
     _doReboot: function() {
         Util.spawn(['gnome-session-quit', '--reboot'])
+    },
+    
+    _doHibernate: function() {
+        Util.spawn(['systemctl', 'suspend'])
     },
     
     _doShutdown: function() {
