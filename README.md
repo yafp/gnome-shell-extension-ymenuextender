@@ -1,7 +1,7 @@
 # gnome-shell-extension-ymenuextender
 
 ## Function
-* Adds `lock`, `logout`, `reboot` and `shutdown` to the user menu
+* Adds a new menu featuring `lock`, `logout`, `hibernate`, `reboot` and `shutdown` to the panel
 * Hides the `activities` menu
 
 ## Install
