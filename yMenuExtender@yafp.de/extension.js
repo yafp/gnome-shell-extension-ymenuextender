@@ -1,5 +1,15 @@
-// Icons: /usr/share/icons
-
+/*
+// Functions:
+//              Add a menu to the Gnome-Shell panel featuring:
+//              - Lock
+//              - Logout
+//              - Hibernate
+//              - Reboot
+//              - Shutdown
+//              functions.
+//
+// Icons:       /usr/share/icons
+*/
 
 const St = imports.gi.St;
 const Main = imports.ui.main;
@@ -12,6 +22,7 @@ const Util = imports.misc.util;                 // to run external commands
 const Gettext = imports.gettext.domain("gnome-shell-extension-ymenuextender");
 const _ = Gettext.gettext;
 
+const EXTENSION_NAME = "yMenuExtender";         // Extensionname
 
 const ScrollableMenu = new Lang.Class({
   Name: 'ScrollableMenu.ScrollableMenu',
@@ -77,8 +88,7 @@ const MainMenu = new Lang.Class({
         this.parent(0.0, _("Menu"));
         this.extensionIcon = new St.Icon({ icon_name: 'open-menu-symbolic', style_class: 'popup-menu-icon' })
         this.actor.add_actor(this.extensionIcon);
-
-        this._addConstMenuItems();
+        this._addConstMenuItems();      // add menu items to icon/button
     },
 
     _addConstMenuItems: function() {
@@ -106,7 +116,7 @@ const MainMenu = new Lang.Class({
         this.separator = new PopupMenu.PopupSeparatorMenuItem();
         this.menu.addMenuItem(this.separator);
         
-        // Menu: About-Notify
+        // Menu: About
         this.about_item = new yMenuExtenderItem(_("About"), "help-about-symbolic", null, Lang.bind(this, this._onAbout));
         this.menu.addMenuItem(this.about_item);
     },
@@ -114,9 +124,7 @@ const MainMenu = new Lang.Class({
     destroy: function() {
         this.parent();
     },
-
     
-
     // Lock
     //
     _onLock: function() {
@@ -151,6 +159,7 @@ const MainMenu = new Lang.Class({
     //
     _onAbout: function() {
         Util.spawn(['notify-send', 'yMenuExtender', 'This is yMenuExtender'])
+        Util.spawn(['xdg-open', 'https://github.com/yafp/gnome-shell-extension-ymenuextender'])
     }
 
 });
@@ -176,6 +185,8 @@ function enable() {
     if(indicator != null) {
         indicator.container.hide();
     }
+    
+    global.log(EXTENSION_NAME +" enabled");
 }
 
 
@@ -189,5 +200,7 @@ function disable() {
     if(indicator != null) {
         indicator.container.show();
     }
+    
+    global.log(EXTENSION_NAME + " disabled");
 }
 
