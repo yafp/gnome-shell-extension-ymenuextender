@@ -1,129 +1,174 @@
-/*
-Sources:
-    - Lock Commands:    http://askubuntu.com/questions/184728/how-do-i-lock-the-screen-from-a-terminal
-    - Check usage of:   endSessionDialog.js
-*/
+// Icons: /usr/share/icons
 
 
-const Lang = imports.lang;
+const St = imports.gi.St;
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
-const Util = imports.misc.util;             // to run external commands
+const PanelMenu = imports.ui.panelMenu;
+const Gtk = imports.gi.Gtk;
+const Lang = imports.lang;
+const Util = imports.misc.util;                 // to run external commands
 
-//const EqualizerIcon = 'equalizer-symbolic';
-const ExtensionIcon = 'yMenuExtender';
+const Gettext = imports.gettext.domain("gnome-shell-extension-ymenuextender");
+const _ = Gettext.gettext;
 
-const QpaeqSubMenu = new Lang.Class({
-    Name: 'QpaeqSubMenu',
-    Extends: PopupMenu.PopupSubMenuMenuItem,
 
-    // init the extension
-    _init: function() {
-        //log('Init');
-        this.parent('yMenuExtender: loading...', true);
+const ScrollableMenu = new Lang.Class({
+  Name: 'ScrollableMenu.ScrollableMenu',
+  Extends: PopupMenu.PopupMenuSection,
 
-        this.icon.style_class = 'system-status-icon';
-        this.icon.icon_name = ExtensionIcon;
-        this.label.set_text("yMenuExtender");
+  _init: function() {
+    this.parent();
+    let scrollView = new St.ScrollView({
+      x_fill: true,
+      y_fill: false,
+      y_align: St.Align.START,
+      overlay_scrollbars: true,
+      style_class: 'vfade'
+    });
+    this.innerMenu = new PopupMenu.PopupMenuSection();
+    scrollView.add_actor(this.innerMenu.actor);
+    this.actor.add_actor(scrollView);
+  },
 
-        // Menu-Item: Lock
-        this.item = new PopupMenu.PopupMenuItem('Lock');
-        this.item.connect('activate', Lang.bind(this, this._launch));
-        this.menu.addMenuItem(this.item);
-        
-        // Menu Item: Logout
-        this.item = new PopupMenu.PopupMenuItem('Logout');
-        this.item.connect('activate', Lang.bind(this, this._doLogout));
-        this.menu.addMenuItem(this.item);
-        
-        // Menu Item: Reboot
-        this.item = new PopupMenu.PopupMenuItem('Reboot');
-        this.item.connect('activate', Lang.bind(this, this._doReboot));
-        this.menu.addMenuItem(this.item);
-        
-        // Menu Item: Hibernate
-        this.item = new PopupMenu.PopupMenuItem('Hibernate');
-        this.item.connect('activate', Lang.bind(this, this._doHibernate));
-        this.menu.addMenuItem(this.item);
-        
-        // Menu Item: Shutdown
-        this.item = new PopupMenu.PopupMenuItem('Shutdown');
-        this.item.connect('activate', Lang.bind(this, this._doShutdown));
-        this.menu.addMenuItem(this.item);
-        
-        // Notification that init is done
-        //
-        Util.spawn(['notify-send', 'yMenuExtender', 'Finished initializing'])
+  addMenuItem: function(item) {
+    this.innerMenu.addMenuItem(item);
+  },
+
+  removeAll: function() {
+    this.innerMenu.removeAll();
+  }
+});
+
+
+const yMenuExtenderItem = new Lang.Class({
+    Name: 'yMenuExtenderItem.yMenuExtenderItem',
+    Extends: PopupMenu.PopupBaseMenuItem,
+
+    _init: function(text, icon_name, gicon, callback) {
+        this.parent(0.0, text);
+
+        let icon_cfg = { style_class: 'popup-menu-icon' };
+        if (icon_name != null) {
+          icon_cfg.icon_name = icon_name;
+        } else if (gicon != null) {
+          icon_cfg.gicon = gicon;
+        }
+
+        this.icon = new St.Icon(icon_cfg);
+        this.actor.add_child(this.icon);
+        this.label = new St.Label({ text: text });
+        this.actor.add_child(this.label);
+
+        this.connect('activate', callback);
     },
 
-    _launch: function() {
-        // Fedora
-        //Util.spawn(['dbus-send', '--type=method_call', '--dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock'])
-        
-        // Ubuntu
-        Util.spawn(['gnome-screensaver-command', '--lock'])
-    },
-    
-    _doLogout: function() {
-        Util.spawn(['gnome-session-quit', '--logout'])
-    },
-    
-    _doReboot: function() {
-        Util.spawn(['gnome-session-quit', '--reboot'])
-    },
-    
-    _doHibernate: function() {
-        Util.spawn(['systemctl', 'suspend'])
-    },
-    
-    _doShutdown: function() {
-        Util.spawn(['gnome-session-quit', '--power-off'])
-    },
-    
-    
-    _displayNotification: function() {
-        // should check if notify-send exists - and use it only if it is there
-        //hash foo 2>/dev/null || { echo >&2 "I require foo but it's not installed.  Aborting."; exit 1; }
-        //
-    },
-    
     destroy: function() {
         this.parent();
     }
 });
 
-let qpaeqSubMenu = null;
+
+const MainMenu = new Lang.Class({
+    Name: 'MainMenu.MainMenu',
+    Extends: PanelMenu.Button,
+
+    _init: function() {
+        this.parent(0.0, _("Menu"));
+        this.extensionIcon = new St.Icon({ icon_name: 'open-menu-symbolic', style_class: 'popup-menu-icon' })
+        this.actor.add_actor(this.extensionIcon);
+
+        this._addConstMenuItems();
+    },
+
+    _addConstMenuItems: function() {
+        // Menu: Lock
+        this.lock_item = new yMenuExtenderItem(_("Lock"), "system-lock-screen-symbolic", null, Lang.bind(this, this._onLock));
+        this.menu.addMenuItem(this.lock_item);
+        
+        // Menu: Logout
+        this.logout_item = new yMenuExtenderItem(_("Logout"), "application-exit-symbolic", null, Lang.bind(this, this._onLogout));
+        this.menu.addMenuItem(this.logout_item);
+        
+        // Menu: Hibernate
+        this.hibernate_item = new yMenuExtenderItem(_("Hibernate"), "application-exit-symbolic", null, Lang.bind(this, this._onHibernate));
+        this.menu.addMenuItem(this.hibernate_item);
+        
+        // Menu: Reboot
+        this.reboot_item = new yMenuExtenderItem(_("Reboot"), "application-exit-symbolic", null, Lang.bind(this, this._onReboot));
+        this.menu.addMenuItem(this.reboot_item);
+        
+        // Menu: Shutdown
+        this.shutdown_item = new yMenuExtenderItem(_("Shutdown"), "system-shutdown-symbolic", null, Lang.bind(this, this._onShutdown));
+        this.menu.addMenuItem(this.shutdown_item);
+        
+        // Separator
+        this.separator = new PopupMenu.PopupSeparatorMenuItem();
+        this.menu.addMenuItem(this.separator);
+        
+        // Menu: About-Notify
+        this.about_item = new yMenuExtenderItem(_("About"), "help-about-symbolic", null, Lang.bind(this, this._onAbout));
+        this.menu.addMenuItem(this.about_item);
+    },
+
+    destroy: function() {
+        this.parent();
+    },
+
+    
+
+    // Lock
+    //
+    _onLock: function() {
+        Util.spawn(['gnome-screensaver-command', '--lock'])
+    },
+    
+    // Logout
+    //
+    _onLogout: function() {
+        Util.spawn(['gnome-session-quit', '--logout'])
+    },
+    
+    // Hibernate
+    //
+    _onHibernate: function() {
+        Util.spawn(['systemctl', 'suspend'])
+    },
+    
+    // Reboot
+    //
+    _onReboot: function() {
+        Util.spawn(['gnome-screensaver-command', '--reboot'])
+    },
+    
+    // Shutdown
+    //
+    _onShutdown: function() {
+        Util.spawn(['gnome-session-quit', '--power-off'])
+    },
+    
+    // About
+    //
+    _onAbout: function() {
+        Util.spawn(['notify-send', 'yMenuExtender', 'This is yMenuExtender'])
+    }
+
+});
 
 
 
-// add icons path to the theme search path
-//
 function init(extensionMeta) {
-    let theme = imports.gi.Gtk.IconTheme.get_default();
-    //theme.append_search_path(extensionMeta.path + "/icons");
-    theme.append_search_path(extensionMeta.path + "/");
+    imports.gettext.bindtextdomain("gnome-shell-extension-ymenuextender", extensionMeta.path + "/locale");
 }
 
+let _indicator;
 
 
-// Enable the extension (add below sound-volume slider)
-// 
+// Enable the extension
+//
 function enable() {
-    if (qpaeqSubMenu != null)
-        return;
-    qpaeqSubMenu = new QpaeqSubMenu();
-
-    // Try to add the output-switcher right below the output slider...
-    let volMen = Main.panel.statusArea.aggregateMenu._volume._volumeMenu;
-    let items = volMen._getMenuItems();
-    let i = 0;
-    while (i < items.length)
-        if (items[i] === volMen._output.item)
-            break;
-        else
-            i++;
-    volMen.addMenuItem(qpaeqSubMenu, i+1);
-    
+    _indicator = new MainMenu;
+    Main.panel.addToStatusArea('yMenuExtenderMain_button', _indicator);
     
     // Hide Activities Button
     //
@@ -131,20 +176,14 @@ function enable() {
     if(indicator != null) {
         indicator.container.hide();
     }
-    
-    
-    Util.spawn(['notify-send', 'yMenuExtender', 'Enabled yMenuExtender extension'])
 }
 
 
-
-// Disable the extensionMeta
+// Disable the extension
 //
 function disable() {
-    qpaeqSubMenu.destroy();
-    qpaeqSubMenu = null;
-    Util.spawn(['notify-send', 'yMenuExtender', 'Disabled yMenuExtender extension'])
-    
+    _indicator.destroy();
+  
     // Show Activities Button
     let indicator = Main.panel.statusArea['activities'];
     if(indicator != null) {
