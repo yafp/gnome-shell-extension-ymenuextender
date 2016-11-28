@@ -4,8 +4,8 @@
     "uuid": "yMenuExtender@yafp.de", 
     "url": "http://github.com/yafp/gnome-shell-extension-ymenuextender",
     "shell-version": [
-        "3.18.5", 
-        "3.22.1"
+        "3.18", 
+        "3.22"
   ], 
     "version": 1
 }

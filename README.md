@@ -6,8 +6,8 @@
 
 
 ## Supported Gnome-Shell versions
-- 3.18.5
-- 3.22.1
+- 3.18
+- 3.22
 
 
 ## Install
