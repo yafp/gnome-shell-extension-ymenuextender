@@ -6,6 +6,7 @@
 
 
 ## Supported Gnome-Shell versions
+- 3.18.5
 - 3.22.1
 
 
