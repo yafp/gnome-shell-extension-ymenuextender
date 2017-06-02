@@ -146,7 +146,7 @@ const MainMenu = new Lang.Class({
     // Reboot
     //
     _onReboot: function() {
-        Util.spawn(['gnome-screensaver-command', '--reboot'])
+        Util.spawn(['gnome-session-quit', '--reboot'])
     },
     
     // Shutdown
